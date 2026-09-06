@@ -15,8 +15,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      PACK_VERSION: "26.2"
-      PACK_NAME: Combined-Enchantments-26.2.zip
+      SERVER_VERSION: "26.2"
+      PACK_BASE_NAME: Combined-Packs
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
@@ -31,21 +31,26 @@ jobs:
             echo 'found=false' >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Pick next pack version
+        if: steps.packs.outputs.found == 'true'
+        run: |
+          last=$(gh release list --limit 100 --json tagName --jq '.[].tagName' \
+            | grep -E "^${SERVER_VERSION}-0\.[0-9]+$" \
+            | sed "s/^${SERVER_VERSION}-0\.//" \
+            | sort -n \
+            | tail -1)
+          next=$((${last:-0} + 1))
+          echo "PACK_VERSION=${SERVER_VERSION}-0.${next}" >> "$GITHUB_ENV"
+          echo "PACK_NAME=${PACK_BASE_NAME}-${SERVER_VERSION}-0.${next}.zip" >> "$GITHUB_ENV"
+
       - name: Build combined pack
         if: steps.packs.outputs.found == 'true'
         run: python .github/scripts/build-resource-pack.py
 
-      - name: Create or update release
+      - name: Create release
         if: steps.packs.outputs.found == 'true'
         run: |
-          if gh release view "$PACK_VERSION" >/dev/null 2>&1; then
-            gh release edit "$PACK_VERSION" \
-              --title "$PACK_VERSION" \
-              --notes-file dist/release-notes.txt
-          else
-            gh release create "$PACK_VERSION" \
-              --title "$PACK_VERSION" \
-              --notes-file dist/release-notes.txt
-          fi
-
-          gh release upload "$PACK_VERSION" "dist/$PACK_NAME" --clobber
+          gh release create "$PACK_VERSION" \
+            "dist/$PACK_NAME" \
+            --title "$PACK_VERSION" \
+            --notes-file dist/release-notes.txt

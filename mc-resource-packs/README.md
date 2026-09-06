@@ -9,4 +9,4 @@ Packs are merged in filename order; later files override earlier ones, matching 
 02-overrides.zip
 ```
 
-The workflow publishes `Combined-Enchantments-26.2.zip` to the `26.2` GitHub release and writes the server.properties lines in the release notes.
+The workflow publishes `Combined-Packs-26.2-0.N.zip` to a new `26.2-0.N` GitHub release each time and writes the server.properties lines in the release notes.

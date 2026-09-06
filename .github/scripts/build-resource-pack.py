@@ -8,8 +8,8 @@ import uuid
 import zipfile
 from pathlib import Path
 
-TAG = os.environ.get("PACK_VERSION", "26.2")
-NAME = os.environ.get("PACK_NAME", f"Combined-Enchantments-{TAG}.zip")
+TAG = os.environ.get("PACK_VERSION", "26.2-0.1")
+NAME = os.environ.get("PACK_NAME", f"Combined-Packs-{TAG}.zip")
 REPO = os.environ["GITHUB_REPOSITORY"]
 
 root = Path("mc-resource-packs")
