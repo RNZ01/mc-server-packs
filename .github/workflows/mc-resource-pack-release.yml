@@ -1,0 +1,51 @@
+name: Build Minecraft resource pack
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - mc-resource-packs/**
+      - .github/workflows/mc-resource-pack-release.yml
+      - .github/scripts/build-resource-pack.py
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PACK_VERSION: "26.2"
+      PACK_NAME: Combined-Enchantments-26.2.zip
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for packs
+        id: packs
+        run: |
+          if compgen -G 'mc-resource-packs/*.zip' >/dev/null; then
+            echo 'found=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'No resource pack zips found; skipping release.'
+            echo 'found=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build combined pack
+        if: steps.packs.outputs.found == 'true'
+        run: python .github/scripts/build-resource-pack.py
+
+      - name: Create or update release
+        if: steps.packs.outputs.found == 'true'
+        run: |
+          if gh release view "$PACK_VERSION" >/dev/null 2>&1; then
+            gh release edit "$PACK_VERSION" \
+              --title "$PACK_VERSION" \
+              --notes-file dist/release-notes.txt
+          else
+            gh release create "$PACK_VERSION" \
+              --title "$PACK_VERSION" \
+              --notes-file dist/release-notes.txt
+          fi
+
+          gh release upload "$PACK_VERSION" "dist/$PACK_NAME" --clobber
