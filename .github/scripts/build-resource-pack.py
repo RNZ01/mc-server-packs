@@ -51,7 +51,7 @@ url = f"https://github.com/{REPO}/releases/download/{TAG}/{NAME}"
 escaped_url = url.replace(":", "\\:")
 
 notes.write_text("\n".join([
-    "require-resource-pack=false",
+    "require-resource-pack=true",
     f"resource-pack={escaped_url}",
     f"resource-pack-id={pack_id}",
     'resource-pack-prompt={"text"\\:"This server recommends using the resource pack for the best experience."}',
